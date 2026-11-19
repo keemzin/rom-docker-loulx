@@ -1,0 +1,64 @@
+# ==============================================================================
+# Git Ignore Configuration for Ragnarok M (LouLx + SkyArc Merged) Docker Stack
+# ==============================================================================
+
+# Local Backups, Scratch & Large Archives
+BACKUP/
+backup/
+temp_export/
+_temp_extract/
+extracted_patch/
+extracted_pets/
+*.apk
+*.sql
+*.bak
+*.old
+*.tar.gz
+!game/libs/usr_local_lib.tar.gz
+*.zip
+*.tar
+*.7z
+*.rar
+
+# Loose scratch scripts in root
+/*.lua
+build_patch3.py
+
+# Large Game Binaries & Data (Download from Hugging Face: loulx/server.zip)
+server/*
+!server/.gitkeep
+
+# Large Web Root (Download from Hugging Face: loulx/wwwroot.zip)
+web/wwwroot/*
+!web/wwwroot/.gitkeep
+
+# Large SQL Dumps (Download from Hugging Face: loulx/init.zip)
+db/init/*
+!db/init/.gitkeep
+
+# Client directory (Track source patch scripts, ignore large bundles/APKs)
+client/*
+!client/.gitkeep
+!client/patch_lua/
+!client/patch_lua/**
+
+# Sensitive Environment Configurations
+.env
+!.env.example
+
+# Log Files & Runtime Caches
+*.log
+*.pid
+logs/
+
+# IDE & OS Metadata
+.DS_Store
+Thumbs.db
+desktop.ini
+.vs/
+.vscode/
+.idea/
+*.suo
+*.user
+*.swp
+*~
