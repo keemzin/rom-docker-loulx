@@ -51,6 +51,18 @@ client/*
 *.pid
 logs/
 
+# Python Bytecode & Virtual Environments
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+ENV/
+
+# Keystores & Signing Keys
+*.keystore
+*.jks
+
 # IDE & OS Metadata
 .DS_Store
 Thumbs.db

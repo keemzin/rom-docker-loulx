@@ -324,5 +324,35 @@ Added **only** the missing Episode 5 server items already present in [`server/Co
     `wsl -d docker-desktop -u root -e mount -t drvfs G: /mnt/host/g`
   - Cleaned unpopulated containers/volumes and brought up the stack with `docker compose up -d`.
   - Verified MySQL cleanly imported all schema and data (`ro_global`: 53 tables, `ro_xd_r2`: 85 tables).
-  - Restarted game cluster and confirmed `SuperServer` reached `[初始化完成],state: 3`, Redis `gateinfo` populated, and Web Portal (Port 81) & GM Tools (Port 5556) respond with HTTP 200 OK.
-  - Created automated helper script `start-server.ps1` / `start-server.bat` to mount Drive G: and start the stack in one click.
+  - Restarted game cluster and confirmed `SuperServer` reached `[初始化完成],state: 3`, Redis `gateinfo` populated, and Web Portal (Port 81) & GM Tools (Port 5556) respond with HTTP 200 OK. Standard `docker compose up -d` brings up the stack cleanly.
+
+### 4.8 Custom Pet System, Pet Option Box, 3D Colliders & Pet Bag Mechanics (Patch v400088)
+- **Pet Option Box & 3D Interactive Controls:**
+  - Resolved issue where custom pets could not be clicked in the 3D scene and had no option box to feed, pet, or recall/rest back into the egg box.
+  - Injected `NPet.lua` to force `assetRole:SetColliderEnable(self:IsMyPet() or (self.data and self.data:IsPet()))`, ensuring raycasts register on custom pet avatars in the 3D world.
+  - Injected `PetData.lua` to automatically assign `self.type = NpcData.NpcType.Pet` whenever `Table_Pet[serverData.npcID]` exists, classifying custom pets accurately in client memory.
+  - Injected `Game_Interface_ForCSharp.lua` to route 3D pet clicks via `Custom_ClickPetHead`.
+  - Injected `MainViewHeadPage.lua` to listen for `Custom_ClickPetHead` and open `ShowPetTip` (the pet option box with Rest, Touch, Feed, and Gift buttons).
+- **Nil Safety Guard in `PetInfoData.lua`:**
+  - Fixed client crash in `PetInfoData:Server_SetData` when calculating friend levels for custom pets lacking standard friend configuration.
+  - Added safe nil check `if self.friendlyData ~= nil and self.friendlyData[level] then` so custom pets initialize gracefully without Lua errors.
+- **Complete Pet Tables Injected:**
+  - Injected 81 custom pets into `client/patch_lua/Table_Pet.lua` (IDs `500010`–`500548`, including Orc Lord, Baphomet, Osiris, Wolf Grandma, Spashire, etc.).
+  - Injected 76 pet friend level definitions into `client/patch_lua/Table_Pet_FriendLevel.lua`.
+  - Injected 336 custom `Table_Monster` models and `Game.Preprocess_Pet()` in `client/patch_lua/SceneProxy.lua`.
+- **Pet Egg Hatching & Pet Bag (`EPACKTYPE_PET`) Discovery:**
+  - Diagnosed egg hatching failure (`[包裹-孵化蛋] ... 失败,未找到宠物蛋`):
+    - In `Package.cpp:4648`, the server function `Package::hatchEgg` specifically queries `getPackage(EPACKTYPE_PET)` (Pet Bag 12), not `EPACKTYPE_MAIN` (Bag 1).
+    - When custom pet eggs are obtained via Gacha (`ESOURCE_LOTTERY_EQUIP`) or `@additem`, they drop into the player's main inventory.
+    - To hatch successfully, the egg must be stored in the **Pet Bag / Egg Box**.
+    - Re-logging causes the server's package loader (`Package.cpp:9512`) to automatically migrate all `EITEMTYPE_EGG` items from Main Bag into the Pet Bag (`[包裹-加载] 是宠物道具,转移到宠物包(12)`).
+- **Automated Hotpatch Build (`scripts/build_hotpatch.py`):**
+  - Expanded hotpatch bundle builder to compile 6 Unity AssetBundles:
+    1. `framework.unity3d`: Main HUD, Quest Teleport, Shop, Boss UI, Pet Head UI (`MainViewHeadPage`).
+    2. `config_pay_zhifu.unity3d`: `Table_MonthCard` 2026 fix.
+    3. `functionsystem.unity3d`: `FunctionMonster`.
+    4. `config_pet_suicong.unity3d`: `Table_Pet`, `Table_Pet_FriendLevel`.
+    5. `com.unity3d`: `PetInfoData`.
+    6. `refactory.unity3d`: `PetData`, `NPet`, `Game_Interface_ForCSharp`.
+  - Deployed hotpatch archive to `web/wwwroot/127.0.0.1/res/patch.zip` and `patch1.zip` (version `400088`).
+  - Confirmed `version.php` dynamically scans and serves incremental patches (`patch.zip`, `patch1.zip`, `patch2.zip`, etc.).

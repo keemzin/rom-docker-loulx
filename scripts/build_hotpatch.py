@@ -43,16 +43,22 @@ def find_root_dir() -> str:
 
 def find_apk(root_dir: str) -> str:
     """Locates the master 2.1GB LouLx APK."""
+    env_apk = os.environ.get("RO_APK_PATH")
+    if env_apk and os.path.exists(env_apk):
+        return env_apk
+
     candidates = [
         os.path.join(root_dir, "client", "loulx-rom.apk"),
         os.path.join(root_dir, "client", "lolsx_rom_original.apk"),
-        os.path.join(root_dir, "ROM.apk"),
+        os.path.join(root_dir, "client", "ROM.apk"),
         os.path.join(root_dir, "client", "rom.apk"),
+        os.path.join(root_dir, "ROM.apk"),
+        os.path.join(os.path.dirname(root_dir), "ROM-LouLx", "ROM.apk"),
     ]
     for c in candidates:
         if os.path.exists(c) and os.path.getsize(c) > 1_500_000_000:
             return c
-    raise FileNotFoundError(f"LouLx base APK not found in {root_dir}/client! Checked: {candidates}")
+    raise FileNotFoundError(f"LouLx base APK not found! Place ROM.apk in client/ or set RO_APK_PATH. Checked: {candidates}")
 
 def patch_bundle(bundle_bytes: bytes, script_names: list, patched_lua_dir: str) -> bytes:
     """
@@ -95,9 +101,14 @@ def update_patch_metadata(res_dir: str, patch_bytes: bytes) -> dict:
         except Exception:
             pass
 
+    files_meta = meta.get("files", {})
+    if not isinstance(files_meta, dict):
+        files_meta = {}
+        meta["files"] = files_meta
+
     max_ver = 400080
-    for finfo in meta.get("files", {}).values():
-        if finfo.get("version", 0) > max_ver:
+    for finfo in files_meta.values():
+        if isinstance(finfo, dict) and finfo.get("version", 0) > max_ver:
             max_ver = finfo["version"]
 
     md5_hash = hashlib.md5(patch_bytes).hexdigest()
@@ -137,32 +148,50 @@ def main():
         "UIListItemCtrlLuckyBag", "UIListItemViewControllerZenyShopItem",
         "UISubViewControllerGachaCoin", "UISubViewControllerMonthlyVIP",
         "UISubViewControllerZenyList", "UIViewControllerZenyShop",
-        "HappyShopProxy", "LotteryView"
+        "HappyShopProxy", "LotteryView", "MainViewHeadPage"
     ]
 
     with zipfile.ZipFile(apk_path, "r") as apk_z:
         # 1. framework.unity3d in assets4.zip
-        print("\n[*] 1/3: Patching framework.unity3d (Quest Teleport, Shop, Free BCC, Boss UI)...")
+        print("\n[*] 1/6: Patching framework.unity3d (Quest Teleport, Shop, Free BCC, Boss UI, Pet Head UI)...")
         z4 = zipfile.ZipFile(io.BytesIO(apk_z.read("assets/assets4.zip")))
         fw_bytes = patch_bundle(z4.read("Android/resources/script2/framework.unity3d"), framework_scripts, lua_dir)
 
         # 2. config_pay_zhifu.unity3d in assets10.zip
-        print("\n[*] 2/3: Patching config_pay_zhifu.unity3d (Table_MonthCard 2026 fix)...")
+        print("\n[*] 2/6: Patching config_pay_zhifu.unity3d (Table_MonthCard 2026 fix)...")
         z10 = zipfile.ZipFile(io.BytesIO(apk_z.read("assets/assets10.zip")))
         pay_bytes = patch_bundle(z10.read("Android/resources/script2/config_pay_zhifu.unity3d"), ["Table_MonthCard"], lua_dir)
 
         # 3. functionsystem.unity3d in assets9.zip
-        print("\n[*] 3/3: Patching functionsystem.unity3d (FunctionMonster)...")
+        print("\n[*] 3/6: Patching functionsystem.unity3d (FunctionMonster)...")
         z9 = zipfile.ZipFile(io.BytesIO(apk_z.read("assets/assets9.zip")))
         func_bytes = patch_bundle(z9.read("Android/resources/script2/functionsystem.unity3d"), ["FunctionMonster"], lua_dir)
 
-    # 4. Construct hotpatch zip archives
+        # 4. config_pet_suicong.unity3d in assets6.zip
+        print("\n[*] 4/6: Patching config_pet_suicong.unity3d (Table_Pet, Table_Pet_FriendLevel)...")
+        z6 = zipfile.ZipFile(io.BytesIO(apk_z.read("assets/assets6.zip")))
+        pet_cfg_bytes = patch_bundle(z6.read("Android/resources/script2/config_pet_suicong.unity3d"), ["Table_Pet", "Table_Pet_FriendLevel"], lua_dir)
+
+        # 5. com.unity3d in assets14.zip
+        print("\n[*] 5/6: Patching com.unity3d (PetInfoData nil guard)...")
+        z14 = zipfile.ZipFile(io.BytesIO(apk_z.read("assets/assets14.zip")))
+        com_bytes = patch_bundle(z14.read("Android/resources/script2/com.unity3d"), ["PetInfoData"], lua_dir)
+
+        # 6. refactory.unity3d in assets11.zip
+        print("\n[*] 6/6: Patching refactory.unity3d (PetData, NPet, Game_Interface_ForCSharp)...")
+        z11 = zipfile.ZipFile(io.BytesIO(apk_z.read("assets/assets11.zip")))
+        refactory_bytes = patch_bundle(z11.read("Android/resources/script2/refactory.unity3d"), ["PetData", "NPet", "Game_Interface_ForCSharp"], lua_dir)
+
+    # 7. Construct hotpatch zip archives
     print("\n[*] Building in-memory patch.zip / patch1.zip archive...")
     zip_buf = io.BytesIO()
     with zipfile.ZipFile(zip_buf, "w", zipfile.ZIP_DEFLATED) as out_z:
         out_z.writestr("Android/resources/script2/framework.unity3d", fw_bytes)
         out_z.writestr("Android/resources/script2/config_pay_zhifu.unity3d", pay_bytes)
         out_z.writestr("Android/resources/script2/functionsystem.unity3d", func_bytes)
+        out_z.writestr("Android/resources/script2/config_pet_suicong.unity3d", pet_cfg_bytes)
+        out_z.writestr("Android/resources/script2/com.unity3d", com_bytes)
+        out_z.writestr("Android/resources/script2/refactory.unity3d", refactory_bytes)
     final_zip_bytes = zip_buf.getvalue()
 
     os.makedirs(res_dir, exist_ok=True)

@@ -63,6 +63,13 @@ To connect smoothly:
 * Instant background AJAX mail delivery (items arrive in player's in-game mailbox in 1 second without page reload).
 * Dedicated tabs for **Weapons**, **Armors**, **Footgears**, **Mounts & Costumes (760 items)**, **Food & Consumables (Ultraman dishes, +15 refine vouchers)**, and **Cards (353 cards)** with slot sub-filters (Shoes, Off-hand, Accessories, Headwear, MVP).
 
+### 6. Custom Pet System & 3D Interactive Controls
+* **Complete Pet Catalog (81 Pets & 76 Friend Levels)**: Full support for custom, mini, and MVP pets (Orc Lord, Baphomet, Osiris, Wolf Grandma, Spashire, etc.) with custom monster models and skill sets.
+* **3D Interaction & Option Menu**: Click custom pets directly in the 3D world or tap the pet avatar in the top-left HUD to open the option box (`ShowPetTip` - Feed, Touch, Gift, and Rest / Recall to Pet Egg Box).
+* **Egg Hatching Workflow**:
+  - In RO Mobile, the game server's `Package::hatchEgg` checks the dedicated **Pet Bag / Egg Box (`EPACKTYPE_PET`)**.
+  - Custom eggs acquired via Gacha or `@additem` enter the main inventory; players simply move the egg into the Pet Egg Box tab (or relog, which auto-sorts pet eggs into the Pet Bag), then click **Hatch** to summon the pet.
+
 ---
 
 ## 🏛️ Stack Architecture
@@ -131,11 +138,7 @@ cp .env.example .env
 4. Click **OK**.
 
 ### Step 5: Start the Server Stack
-Run the Windows startup script (which verifies WSL host mount and launches containers):
-```powershell
-.\start-server.ps1
-```
-*Or standard Docker Compose:*
+Launch the container cluster using standard Docker Compose:
 ```bash
 docker compose up -d
 ```
@@ -156,16 +159,23 @@ docker exec rom-game-lolx tail -n 20 /RoServercode/bin/Release/log/xd/r2_s1/Supe
 ## 🔄 Building OTA Client Hotpatches
 
 All unencrypted, human-readable Lua source scripts are saved in **`client/patch_lua/`**:
+- `Table_Pet.lua` & `Table_Pet_FriendLevel.lua`: Complete 81 custom pets and 76 friend level configurations.
+- `PetInfoData.lua`: Nil safety guard preventing friend level calculation crashes on custom pets.
+- `PetData.lua` & `NPet.lua`: Type enforcement (`NpcData.NpcType.Pet`) and 3D collider enable for player-owned custom pets.
+- `Game_Interface_ForCSharp.lua` & `MainViewHeadPage.lua`: 3D pet touch events and pet avatar option menu popup (`ShowPetTip`).
+- `SceneProxy.lua`: 336 custom monster client models preprocessed for pet rendering.
 - `MainViewTaskQuestPage.lua` & `QuestTraceCell.lua`: 0-load screen quest teleport.
 - `UIViewControllerZenyShop.lua` & `UIListItemViewControllerZenyShopItem.lua`: Big Cat Store mock payment.
 - `Table_MonthCard.lua`: 2026 month card crash fix.
 - `FunctionMonster.lua`: VIP MVP & Mini-Boss map detection.
 
+The builder packages these into 6 Unity AssetBundles (`framework`, `config_pay_zhifu`, `functionsystem`, `config_pet_suicong`, `com`, `refactory`).
+
 To build and deploy an OTA hotpatch:
 ```powershell
 python scripts/build_hotpatch.py
 ```
-This updates `patch.zip` / `patch1.zip` in `web/wwwroot/127.0.0.1/res/` and bumps the patch version in `patch.meta.json`. On next client launch, players receive the update automatically.
+This updates `patch.zip` / `patch1.zip` in `web/wwwroot/127.0.0.1/res/` and bumps the patch version in `patch.meta.json`. On next client launch, players receive the update automatically. Incremental patches (`patch2.zip`, etc.) are also dynamically indexed by `version.php`.
 
 ---
 
