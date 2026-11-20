@@ -90,7 +90,7 @@ def patch_bundle(bundle_bytes: bytes, script_names: list, patched_lua_dir: str) 
                     print(f"  [+] Patched TextAsset: {d.m_Name} ({len(enc_data):,} bytes)")
     return env.file.save(packer="lz4")
 
-def update_patch_metadata(res_dir: str, patch_bytes: bytes) -> dict:
+def update_patch_metadata(res_dir: str, patch_files: list, patch_bytes: bytes) -> dict:
     """Calculates MD5, file size, bumps version number, and updates patch.meta.json."""
     meta_path = os.path.join(res_dir, "patch.meta.json")
     meta = {"files": {}}
@@ -114,7 +114,7 @@ def update_patch_metadata(res_dir: str, patch_bytes: bytes) -> dict:
     md5_hash = hashlib.md5(patch_bytes).hexdigest()
     file_size = len(patch_bytes)
 
-    for fname in ["patch.zip", "patch1.zip"]:
+    for fname in patch_files:
         cur_ver = max_ver + 1
         max_ver = cur_ver
         meta.setdefault("files", {})[fname] = {
@@ -134,6 +134,15 @@ def main():
     apk_path = find_apk(root)
     res_dir = os.path.join(root, "web", "wwwroot", "127.0.0.1", "res")
 
+    # Determine which patch archives to generate (default: patch2.zip)
+    if len(sys.argv) > 1:
+        arg = sys.argv[1].strip()
+        if not arg.endswith(".zip"):
+            arg += ".zip"
+        target_patches = [arg]
+    else:
+        target_patches = ["patch2.zip"]
+
     print("============================================================")
     print("    Ragnarok M - LouLx EP5 OTA Hotpatch Builder             ")
     print("============================================================")
@@ -141,6 +150,7 @@ def main():
     print(f"[*] Base APK:        {apk_path} ({os.path.getsize(apk_path):,} bytes)")
     print(f"[*] Patched Lua Dir: {lua_dir}")
     print(f"[*] Target Res Dir:  {res_dir}")
+    print(f"[*] Target Patches:  {target_patches}")
 
     framework_scripts = [
         "MainViewMenuPage", "MainViewMiniMap", "MainViewTaskQuestPage",
@@ -148,66 +158,70 @@ def main():
         "UIListItemCtrlLuckyBag", "UIListItemViewControllerZenyShopItem",
         "UISubViewControllerGachaCoin", "UISubViewControllerMonthlyVIP",
         "UISubViewControllerZenyList", "UIViewControllerZenyShop",
-        "HappyShopProxy", "LotteryView", "MainViewHeadPage"
+        "HappyShopProxy", "LotteryView", "MainViewHeadPage",
+        "UniqueConfirmView"
     ]
 
     with zipfile.ZipFile(apk_path, "r") as apk_z:
         # 1. framework.unity3d in assets4.zip
-        print("\n[*] 1/6: Patching framework.unity3d (Quest Teleport, Shop, Free BCC, Boss UI, Pet Head UI)...")
+        print("\n[*] 1/1: Patching framework.unity3d (Quest Teleport, Auto-Complete, Shop, Free BCC, Boss UI, Pet Head UI)...")
         z4 = zipfile.ZipFile(io.BytesIO(apk_z.read("assets/assets4.zip")))
         fw_bytes = patch_bundle(z4.read("Android/resources/script2/framework.unity3d"), framework_scripts, lua_dir)
 
-        # 2. config_pay_zhifu.unity3d in assets10.zip
-        print("\n[*] 2/6: Patching config_pay_zhifu.unity3d (Table_MonthCard 2026 fix)...")
-        z10 = zipfile.ZipFile(io.BytesIO(apk_z.read("assets/assets10.zip")))
-        pay_bytes = patch_bundle(z10.read("Android/resources/script2/config_pay_zhifu.unity3d"), ["Table_MonthCard"], lua_dir)
+        pay_bytes = None
+        func_bytes = None
+        pet_cfg_bytes = None
+        com_bytes = None
+        refactory_bytes = None
 
-        # 3. functionsystem.unity3d in assets9.zip
-        print("\n[*] 3/6: Patching functionsystem.unity3d (FunctionMonster)...")
-        z9 = zipfile.ZipFile(io.BytesIO(apk_z.read("assets/assets9.zip")))
-        func_bytes = patch_bundle(z9.read("Android/resources/script2/functionsystem.unity3d"), ["FunctionMonster"], lua_dir)
+        build_all = "--all" in sys.argv or "patch.zip" in target_patches or "patch1.zip" in target_patches
+        if build_all:
+            print("\n[*] 2/6: Patching config_pay_zhifu.unity3d (Table_MonthCard 2026 fix)...")
+            z10 = zipfile.ZipFile(io.BytesIO(apk_z.read("assets/assets10.zip")))
+            pay_bytes = patch_bundle(z10.read("Android/resources/script2/config_pay_zhifu.unity3d"), ["Table_MonthCard"], lua_dir)
 
-        # 4. config_pet_suicong.unity3d in assets6.zip
-        print("\n[*] 4/6: Patching config_pet_suicong.unity3d (Table_Pet, Table_Pet_FriendLevel)...")
-        z6 = zipfile.ZipFile(io.BytesIO(apk_z.read("assets/assets6.zip")))
-        pet_cfg_bytes = patch_bundle(z6.read("Android/resources/script2/config_pet_suicong.unity3d"), ["Table_Pet", "Table_Pet_FriendLevel"], lua_dir)
+            print("\n[*] 3/6: Patching functionsystem.unity3d (FunctionMonster)...")
+            z9 = zipfile.ZipFile(io.BytesIO(apk_z.read("assets/assets9.zip")))
+            func_bytes = patch_bundle(z9.read("Android/resources/script2/functionsystem.unity3d"), ["FunctionMonster"], lua_dir)
 
-        # 5. com.unity3d in assets14.zip
-        print("\n[*] 5/6: Patching com.unity3d (PetInfoData nil guard)...")
-        z14 = zipfile.ZipFile(io.BytesIO(apk_z.read("assets/assets14.zip")))
-        com_bytes = patch_bundle(z14.read("Android/resources/script2/com.unity3d"), ["PetInfoData"], lua_dir)
+            print("\n[*] 4/6: Patching config_pet_suicong.unity3d (Table_Pet, Table_Pet_FriendLevel)...")
+            z6 = zipfile.ZipFile(io.BytesIO(apk_z.read("assets/assets6.zip")))
+            pet_cfg_bytes = patch_bundle(z6.read("Android/resources/script2/config_pet_suicong.unity3d"), ["Table_Pet", "Table_Pet_FriendLevel"], lua_dir)
 
-        # 6. refactory.unity3d in assets11.zip
-        print("\n[*] 6/6: Patching refactory.unity3d (PetData, NPet, Game_Interface_ForCSharp)...")
-        z11 = zipfile.ZipFile(io.BytesIO(apk_z.read("assets/assets11.zip")))
-        refactory_bytes = patch_bundle(z11.read("Android/resources/script2/refactory.unity3d"), ["PetData", "NPet", "Game_Interface_ForCSharp"], lua_dir)
+            print("\n[*] 5/6: Patching com.unity3d (PetInfoData nil guard)...")
+            z14 = zipfile.ZipFile(io.BytesIO(apk_z.read("assets/assets14.zip")))
+            com_bytes = patch_bundle(z14.read("Android/resources/script2/com.unity3d"), ["PetInfoData"], lua_dir)
+
+            print("\n[*] 6/6: Patching refactory.unity3d (PetData, NPet, Game_Interface_ForCSharp)...")
+            z11 = zipfile.ZipFile(io.BytesIO(apk_z.read("assets/assets11.zip")))
+            refactory_bytes = patch_bundle(z11.read("Android/resources/script2/refactory.unity3d"), ["PetData", "NPet", "Game_Interface_ForCSharp"], lua_dir)
 
     # 7. Construct hotpatch zip archives
-    print("\n[*] Building in-memory patch.zip / patch1.zip archive...")
+    print(f"\n[*] Building in-memory {', '.join(target_patches)} archive...")
     zip_buf = io.BytesIO()
     with zipfile.ZipFile(zip_buf, "w", zipfile.ZIP_DEFLATED) as out_z:
         out_z.writestr("Android/resources/script2/framework.unity3d", fw_bytes)
-        out_z.writestr("Android/resources/script2/config_pay_zhifu.unity3d", pay_bytes)
-        out_z.writestr("Android/resources/script2/functionsystem.unity3d", func_bytes)
-        out_z.writestr("Android/resources/script2/config_pet_suicong.unity3d", pet_cfg_bytes)
-        out_z.writestr("Android/resources/script2/com.unity3d", com_bytes)
-        out_z.writestr("Android/resources/script2/refactory.unity3d", refactory_bytes)
+        if pay_bytes:
+            out_z.writestr("Android/resources/script2/config_pay_zhifu.unity3d", pay_bytes)
+        if func_bytes:
+            out_z.writestr("Android/resources/script2/functionsystem.unity3d", func_bytes)
+        if pet_cfg_bytes:
+            out_z.writestr("Android/resources/script2/config_pet_suicong.unity3d", pet_cfg_bytes)
+        if com_bytes:
+            out_z.writestr("Android/resources/script2/com.unity3d", com_bytes)
+        if refactory_bytes:
+            out_z.writestr("Android/resources/script2/refactory.unity3d", refactory_bytes)
     final_zip_bytes = zip_buf.getvalue()
 
     os.makedirs(res_dir, exist_ok=True)
-    p_zip = os.path.join(res_dir, "patch.zip")
-    p1_zip = os.path.join(res_dir, "patch1.zip")
+    for p_name in target_patches:
+        target_path = os.path.join(res_dir, p_name)
+        with open(target_path, "wb") as f:
+            f.write(final_zip_bytes)
+        print(f"[+] Wrote {target_path} ({len(final_zip_bytes):,} bytes)")
 
-    with open(p_zip, "wb") as f:
-        f.write(final_zip_bytes)
-    with open(p1_zip, "wb") as f:
-        f.write(final_zip_bytes)
-
-    print(f"[+] Wrote {p_zip} ({len(final_zip_bytes):,} bytes)")
-    print(f"[+] Wrote {p1_zip} ({len(final_zip_bytes):,} bytes)")
-
-    # 5. Update patch.meta.json
-    meta = update_patch_metadata(res_dir, final_zip_bytes)
+    # 8. Update patch.meta.json
+    meta = update_patch_metadata(res_dir, target_patches, final_zip_bytes)
     print("\n[+] Updated patch.meta.json:")
     print(json.dumps(meta, indent=2))
     print("\n[+] Build successfully completed! Clients will download this OTA patch on next game launch.")

@@ -117,6 +117,50 @@ local function _FindQuestTargetPos(questData, currentMapID)
 	return targetX, targetY, targetZ, isGate
 end
 
+local _lastQuestTraceCompleteTime = 0
+
+local function _DoCompleteQuest(questData)
+	if not questData or not questData.id then return end
+	local now = os.time()
+	if now - _lastQuestTraceCompleteTime < 1 then
+		return
+	end
+	_lastQuestTraceCompleteTime = now
+
+	if ServiceGMProxy.Instance == nil then
+		ServiceGMProxy.new()
+	end
+
+	local qid = questData.id
+	local qname = (questData.staticData and questData.staticData.Name) or ("Quest " .. tostring(qid))
+
+	-- 1. Wanted / Board quest support
+	local isWanted = (questData.type == QuestDataType.QuestDataType_WANTED or questData.type == "wanted")
+	if isWanted then
+		ServiceGMProxy.Instance:Call(string.format("finishboardquest submit=1 id=%d", qid))
+	end
+
+	-- 2. Standard quest finish (subgroup or bigquest)
+	if qid >= 10000 then
+		local bigId = math.floor(qid / 10000)
+		local subId = qid % 10000
+		if subId > 0 then
+			ServiceGMProxy.Instance:Call(string.format("finishGroup id=%d groupid=%d", bigId, subId))
+		else
+			ServiceGMProxy.Instance:Call(string.format("finishquest id=%d refresh=1", bigId))
+		end
+	else
+		ServiceGMProxy.Instance:Call(string.format("finishquest id=%d refresh=1", qid))
+	end
+
+	-- 3. Also trigger submit protocol in case quest reached submit state
+	if ServiceQuestProxy.Instance then
+		ServiceQuestProxy.Instance:CallQuestAction(SceneQuest_pb.EQUESTACTION_SUBMIT, qid)
+	end
+
+	MsgManager.FloatMsgTableParam(nil, string.format("Quest [c][ffff00]%s[-][/c] Completed!", qname))
+end
+
 local baseCell = autoImport("BaseCell")
 QuestTraceCell = class("QuestTraceCell",baseCell)
 
@@ -147,17 +191,14 @@ function QuestTraceCell:initView(  )
 
 			local currentMapID = SceneProxy.Instance:GetCurMapID()
 			local targetX, targetY, targetZ, isGate = _FindQuestTargetPos(questData, currentMapID)
+			local questName = (questData.staticData and questData.staticData.Name) or ("Quest " .. tostring(questData.id))
+
+			local completeHandler = function()
+				_DoCompleteQuest(questData)
+			end
 
 			if targetX and targetY and targetZ then
-				local myPos = Game.Myself:GetPosition()
-				local dist = VectorUtility.DistanceXZ(myPos, LuaVector3(targetX, targetY, targetZ))
-				if dist and dist < 6 and not isGate then
-					doDefault()
-					return
-				end
-
-				local text = isGate and "Teleport to the exit gate towards this quest?" or "Teleport directly to the quest objective?"
-				local confirmHandler = function()
+				local teleportHandler = function()
 					if ServiceGMProxy.Instance == nil then
 						ServiceGMProxy.new()
 					end
@@ -167,9 +208,39 @@ function QuestTraceCell:initView(  )
 						FunctionQuest.Me():executeManualQuest(questData)
 					end
 				end
-				UIUtil.PopUpConfirmYesNoView("Quest Teleport", text, confirmHandler, doDefault, nil, "Teleport", "Walk")
+
+				local prompt = isGate and "Teleport to the exit gate towards this quest?" or "Teleport directly to the quest objective?"
+				local text = string.format("[c][ffff00]%s[-][/c]\n%s\n\n• [c][00ff00]Complete[-][/c]: Instantly finish & claim reward\n• [c][00ffff]Teleport[-][/c]: Warp to destination\n• Walk: Pathfind normally", questName, prompt)
+
+				local viewData = {
+					viewname = "UniqueConfirmView",
+					title = "Quest Action",
+					content = text,
+					confirmtext = "Teleport",
+					canceltext = "Walk",
+					thirdtext = "[c][00ff00]Complete[-][/c]",
+					confirmHandler = teleportHandler,
+					cancelHandler = doDefault,
+					thirdHandler = completeHandler,
+					needCloseBtn = true,
+					needExitDefaultHandle = false,
+				}
+				GameFacade.Instance:sendNotification(UIEvent.ShowUI, viewData)
 			else
-				doDefault()
+				local text = string.format("[c][ffff00]%s[-][/c]\nObjective location not on current map.\n\n• [c][00ff00]Complete[-][/c]: Instantly finish & claim reward\n• Walk: Continue / Auto-track", questName)
+
+				local viewData = {
+					viewname = "UniqueConfirmView",
+					title = "Quest Action",
+					content = text,
+					confirmtext = "[c][00ff00]Complete[-][/c]",
+					canceltext = "Walk",
+					confirmHandler = completeHandler,
+					cancelHandler = doDefault,
+					needCloseBtn = true,
+					needExitDefaultHandle = false,
+				}
+				GameFacade.Instance:sendNotification(UIEvent.ShowUI, viewData)
 			end
 		end
 	end)
