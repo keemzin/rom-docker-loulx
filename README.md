@@ -57,9 +57,9 @@ The LouLx mobile client is configured to connect to IP **`192.168.128.129`**.
 * Modifying Lua client scripts no longer requires unpacking or recompiling the 2GB APK!
 * The stack includes an automated AES-256-CBC bundle compiler:
   ```powershell
-  python scripts/build_hotpatch.py patch3.zip --all
+  python scripts/build_hotpatch.py patch2.zip --all
   ```
-* Edits in `client/patch_lua/` (framework, pet configurations, skill tables) are automatically encrypted into Unity TextAssets, repacked into `patch3.zip` under `web/wwwroot/127.0.0.1/res/`, and version-bumped in `patch.meta.json`. Includes full compilation of `config_skill_jineng.unity3d` (`Table_Skill`) and `config_pet_suicong.unity3d` (`Table_Pet`).
+* Edits in `client/patch_lua/` (framework, pet configurations, skill tables, quest quick jump) are automatically encrypted into Unity TextAssets, repacked into `patch2.zip` under `web/wwwroot/127.0.0.1/res/`, and version-bumped in `patch.meta.json`. Includes full compilation of `config_skill_jineng.unity3d` (`Table_Skill`) and `config_pet_suicong.unity3d` (`Table_Pet`).
 * Players receive client patches over-the-air upon game launch.
 
 ### 5. Web Equipment Shop (Port 81)
@@ -68,7 +68,7 @@ The LouLx mobile client is configured to connect to IP **`192.168.128.129`**.
 * Dedicated tabs for **Weapons**, **Armors**, **Footgears**, **Mounts & Costumes (760 items)**, **Food & Consumables (Ultraman dishes, +15 refine vouchers)**, and **Cards (353 cards)** with slot sub-filters (Shoes, Off-hand, Accessories, Headwear, MVP).
 
 ### 6. Custom Pet System & 3D Interactive Controls
-* **Complete Pet Catalog (81 Pets & 76 Friend Levels)**: Full support for 28 custom MVP, Mini-Boss, and Special pets with custom 3D monster models, interactive touch events, and customized combat/passive skill profiles (delivered via OTA `patch3.zip`).
+* **Complete Pet Catalog (81 Pets & 76 Friend Levels)**: Full support for 28 custom MVP, Mini-Boss, and Special pets with custom 3D monster models, interactive touch events, and customized combat/passive skill profiles (delivered via OTA `patch2.zip`).
 * **Unique Lore-Accurate Skills**: Unlike releases where all custom pets shared duplicate placeholder skills, each MVP pet has dedicated active combat attacks and master stat buffs:
   * **Baphomet (`900166`)**: Sonic Blow + Crit.Dmg Up + Devil's Strength
   * **Golden Thief Bug (`900172`)**: Knocking Attack + Refine Atk + Solid Shell (Damage Reduction)
@@ -84,7 +84,7 @@ The LouLx mobile client is configured to connect to IP **`192.168.128.129`**.
   - Custom eggs acquired via Gacha or `@additem` enter the main inventory; players simply move the egg into the Pet Egg Box tab (or relog, which auto-sorts pet eggs into the Pet Bag), then click **Hatch** to summon the pet.
   - **Important for Existing Pets**: Pet skill IDs are rolled from `Table_Pet` at the moment an egg is hatched and saved permanently to the database character blob (`setSkillIDs`). Any pet hatched before this update retains the older duplicate skills in its save data. To get the new unique skill profile, simply spawn and hatch a fresh egg (e.g. `@additem 900165 1` for Bloody Knight) or use a Pet Skill Reset item.
   - **Combat Skill Casting**: Pet active combat skill casting is driven by `Table_MonsterSkill.txt`. All 28 custom pets have their active attack skills configured so they cast their signature attacks during battle.
-  - **Visual Effects & Skill Animations**: All 28 custom pet active skills are verified and cross-checked against native EP5 APK effect assets. Broken/missing effect prefabs (such as missing `HotFlame_Atk`, `DarkAtk_Atk`, `CrazyClaw_hit`) and invalid humanoid cast poses (`reading`) have been replaced with native working effects (`MagnumBreak_attack`, `FireAttributeHit`, `darkhole_attack`, `drakattributehit`, `ragingpalmstrike_hit`) and injected into `config_skill_jineng.unity3d` via OTA `patch3.zip`.
+  - **Visual Effects & Skill Animations**: All 28 custom pet active skills are verified and cross-checked against native EP5 APK effect assets. Broken/missing effect prefabs (such as missing `HotFlame_Atk`, `DarkAtk_Atk`, `CrazyClaw_hit`) and invalid humanoid cast poses (`reading`) have been replaced with native working effects (`MagnumBreak_attack`, `FireAttributeHit`, `darkhole_attack`, `drakattributehit`, `ragingpalmstrike_hit`) and injected into `config_skill_jineng.unity3d` via OTA `patch2.zip`.
   - **Normalized Attack Speed**: Pet attack speeds have been balanced and normalized across all custom pets (`AtkSpd = 1.2`, ~0.8s cooldown) for smooth, natural combat pacing.
 
 #### 🐾 Custom MVP & Mini-Boss Pet Egg Catalog

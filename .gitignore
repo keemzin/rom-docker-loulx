@@ -25,7 +25,6 @@ extracted_pets/
 
 # Loose scratch scripts in root
 /*.lua
-build_patch3.py
 
 # Large Game Binaries & Data (Download from Hugging Face: loulx/server.zip)
 server/*

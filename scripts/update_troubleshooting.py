@@ -26,7 +26,7 @@ new_sec = """## 8. Client APK Architecture, Decompilation, Asset Extraction & OT
 > [!IMPORTANT]
 > **Authoritative Reference Guide for AI Agents & Developers**:
 > This section explains how to inspect, unpack, modify, and build Over-The-Air (OTA) patches for the Ragnarok M client APK.
-> **Golden Rule**: Always prefer creating incremental OTA patches (`patch3.zip`) rather than modifying or rebuilding the full 2 GB APK.
+> **Golden Rule**: Always prefer creating incremental OTA patches (`patch2.zip`) rather than modifying or rebuilding the full 2 GB APK.
 
 ---
 
@@ -110,12 +110,12 @@ with zipfile.ZipFile(apk_path, 'r') as apk:
 
 ---
 
-### 8.4 How to Create an OTA Patch (`patch3.zip`)
+### 8.4 How to Create an OTA Patch (`patch2.zip`)
 Ragnarok M supports Over-The-Air (OTA) hot-patching. When the game launches, it queries `http://<SERVER_IP>:33061/version.php` which automatically scans `web/wwwroot/127.0.0.1/res/`.
 
 **Advantages of OTA Patches:**
 - ⚡ **Zero Reinstallation**: Players receive updates instantly on client launch.
-- 🎯 **Isolated & Reversible**: Creating `patch3.zip` leaves `patch.zip` and `patch1.zip` untouched. If something goes wrong, simply delete `patch3.zip` or clear client cache.
+- 🎯 **Isolated & Reversible**: Creating `patch2.zip` leaves `patch.zip` and `patch1.zip` untouched. If something goes wrong, simply delete `patch2.zip` or clear client cache.
 - 📦 **Automatic Versioning**: `version.php` calculates MD5 and file size, assigning the next client version automatically in `patch.meta.json`.
 
 #### Step-by-Step Patch Creation:
@@ -126,10 +126,10 @@ Ragnarok M supports Over-The-Air (OTA) hot-patching. When the game launches, it 
    Call `d.save()`.
 3. **Save AssetBundle**:
    Save `env.file.save()` to a new `framework.unity3d`.
-4. **Package into `patch3.zip`**:
-   Pack the updated file at path `Android/resources/script2/framework.unity3d` inside `web/wwwroot/127.0.0.1/res/patch3.zip`.
+4. **Package into `patch2.zip`**:
+   Pack the updated file at path `Android/resources/script2/framework.unity3d` inside `web/wwwroot/127.0.0.1/res/patch2.zip`.
 5. **Verify `patch.meta.json`**:
-   Run `curl http://127.0.0.1:33061/version.php?client=400084` to verify `patch3.zip` is detected with a higher version code and valid download URL.
+   Run `curl http://127.0.0.1:33061/version.php?client=400084` to verify `patch2.zip` is detected with a higher version code and valid download URL.
 
 ---
 

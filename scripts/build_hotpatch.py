@@ -175,7 +175,7 @@ def main():
         refactory_bytes = None
         skill_cfg_bytes = None
 
-        build_all = "--all" in sys.argv or "patch.zip" in target_patches or "patch1.zip" in target_patches or "patch3.zip" in target_patches
+        build_all = "--all" in sys.argv or "patch.zip" in target_patches or "patch1.zip" in target_patches or "patch2.zip" in target_patches
         if build_all:
             print("\n[*] 2/7: Patching config_pay_zhifu.unity3d (Table_MonthCard 2026 fix)...")
             z10 = zipfile.ZipFile(io.BytesIO(apk_z.read("assets/assets10.zip")))
