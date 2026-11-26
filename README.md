@@ -168,7 +168,11 @@ Extract each file into the repository root:
 2. **`loulx/wwwroot.zip`** -> Extract into `./web/wwwroot/`
 3. **`loulx/init.zip`** -> Extract into `./db/init/`
 4. **`loulx/ROM.apk`** -> Install on Android or drag-and-drop into LDPlayer 9 / MuMu!
-5. **Latest OTA Patches**: Copy all files from the `./patches/` directory into `./web/wwwroot/127.0.0.1/res/` (replace existing files) to ensure your game server serves the newest pet skills, effects, and QoL patches! See [patches/README.md](patches/README.md) for full details.
+5. **Install Latest Patches (1-Click)**:
+   ```powershell
+   python scripts/install_patches.py
+   ```
+   *This automatically installs the latest client OTA hotpatches (`patch2.zip`) into `res/` and synchronizes the server tables with balanced pet attack speeds and lore-accurate combat skills.*
 
 ### Step 3: Configure Environment
 Copy `.env.example` to `.env`:

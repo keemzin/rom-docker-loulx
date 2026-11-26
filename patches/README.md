@@ -6,20 +6,20 @@ This directory contains the latest pre-built client OTA patches and metadata man
 
 ## 🚀 Quick Setup (How to Install)
 
-After extracting `wwwroot.zip` from Hugging Face into `./web/wwwroot/`:
+After extracting `server.zip` and `wwwroot.zip` from Hugging Face:
 
-1. **Copy all files from this `patches/` directory:**
-   * `patch.meta.json`
-   * `patch.zip`
-   * `patch1.zip`
-   * `patch2.zip`
-2. **Paste them into:**
-   ```
-   ./web/wwwroot/127.0.0.1/res/
-   ```
-   *(Select **Replace the files in the destination** when prompted).*
+### Method 1: Automated 1-Click (Recommended)
+Run from the repository root:
+```powershell
+python scripts/install_patches.py
+```
+This automatically copies the client OTA hotpatches to `./web/wwwroot/127.0.0.1/res/` and updates the server tables in `./server/`.
 
-This ensures your local Nginx server immediately serves the latest version **400097** hotpatches with all custom pet skills, animations, quest quick-jump, and bug fixes to connecting game clients.
+### Method 2: Manual Copy
+1. **Client Patches**: Copy `patch.zip`, `patch1.zip`, `patch2.zip`, and `patch.meta.json` into `./web/wwwroot/127.0.0.1/res/`.
+2. **Server Tables**: Copy `patches/server_tables/Release/*.txt` into `./server/bin/Release/Lua/Table/`, and `patches/server_tables/Config/*.txt` into `./server/Config/Lua/Table/`.
+
+This ensures your local Nginx server immediately serves the latest version **400100** hotpatches with all custom pet skills, animations, quest quick-jump, and bug fixes to connecting game clients.
 
 ---
 
@@ -28,7 +28,7 @@ This ensures your local Nginx server immediately serves the latest version **400
 | Archive | Version | Size | Description & Contents |
 | :--- | :---: | :---: | :--- |
 | **`patch.zip` / `patch1.zip`** | `400089` | ~16.5 MB | **Core Quality-of-Life & Bug Fixes**: <br>• **2026 Monthly VIP Card Fix**: Fixes client crash on the month card tab (`Table_MonthCard.lua`).<br>• **Big Cat Store Mock Payments**: Free Big Cat Coins and mock recharge system (`UIViewControllerZenyShop.lua`).<br>• **VIP Mini-Map Radar**: Auto-detects Mini & MVP bosses on the mini-map (`FunctionMonster.lua`). |
-| **`patch2.zip`** | **`400097`** | **~25.0 MB** | **All-In-One Overhaul: Custom Pets, Combat Skills & Instant Quest Quick Jump**: <br>• **Complete 28 MVP/Mini-Boss Pets**: Unique egg hatching, 3D monster models, interactive touch events, and avatar option menus (`Table_Pet.lua`, `Table_Pet_FriendLevel.lua`, `SceneProxy.lua`).<br>• **Instant Quest Auto-Complete & Quick Jump**: 0-load screen quest teleporting directly to objectives and interactive dialog (`MainViewTaskQuestPage.lua`, `QuestTraceCell.lua`, `UniqueConfirmView.lua`).<br>• **Verified Combat Skills**: Fixed missing visual effects and animations (`Table_Skill.lua` inside `config_skill_jineng.unity3d`):<br>&nbsp;&nbsp;- **Eddga**: Blazing Flame (`MagnumBreak_attack` + `FireAttributeHit` impact with `use_skill` roar).<br>&nbsp;&nbsp;- **Bloody Knight & Thanatos**: Dark Blow (`darkhole_attack` + `drakattributehit` shadow strike).<br>&nbsp;&nbsp;- **Wolf Grandma**: Frenzied Scratch (`SonicBlow` + `ragingpalmstrike_hit` claw impact).<br>&nbsp;&nbsp;- **Spashire & Stormy Knight**: Cold Bolt (removed freezing `reading` cast pose).<br>• **Normalized Attack Speed**: Balanced pet attack intervals to `AtkSpd = 1.2` (~0.8s cooldown, eliminating machine-gun skill spam). |
+| **`patch2.zip`** | **`400100`** | **~25.0 MB** | **All-In-One Overhaul: Custom Pets, Combat Skills & Instant Quest Quick Jump**: <br>• **Complete 28 MVP/Mini-Boss Pets**: Unique egg hatching, 3D monster models, interactive touch events, and avatar option menus (`Table_Pet.lua`, `Table_Pet_FriendLevel.lua`, `SceneProxy.lua`).<br>• **Instant Quest Auto-Complete & Quick Jump**: 0-load screen quest teleporting directly to objectives and interactive dialog (`MainViewTaskQuestPage.lua`, `QuestTraceCell.lua`, `UniqueConfirmView.lua`).<br>• **Verified Combat Skills**: Fixed missing visual effects and animations (`Table_Skill.lua` inside `config_skill_jineng.unity3d`):<br>&nbsp;&nbsp;- **Eddga**: Blazing Flame (`MagnumBreak_attack` + `FireAttributeHit` impact with `use_skill` roar).<br>&nbsp;&nbsp;- **Bloody Knight & Thanatos**: Dark Blow (`darkhole_attack` + `drakattributehit` shadow strike).<br>&nbsp;&nbsp;- **Wolf Grandma**: Frenzied Scratch (`SonicBlow` + `ragingpalmstrike_hit` claw impact).<br>&nbsp;&nbsp;- **Spashire & Stormy Knight**: Cold Bolt (removed freezing `reading` cast pose).<br>• **Normalized Attack Speed**: Balanced pet attack intervals to `AtkSpd = 1.2` (~0.8s cooldown, eliminating machine-gun skill spam). |
 | **`patch.meta.json`** | Latest | ~500 B | **Version Manifest**: Read by the mobile client on launch to compare current local patch versions against server versions and trigger automatic downloads. |
 
 ---
