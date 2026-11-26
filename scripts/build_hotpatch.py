@@ -173,28 +173,33 @@ def main():
         pet_cfg_bytes = None
         com_bytes = None
         refactory_bytes = None
+        skill_cfg_bytes = None
 
-        build_all = "--all" in sys.argv or "patch.zip" in target_patches or "patch1.zip" in target_patches
+        build_all = "--all" in sys.argv or "patch.zip" in target_patches or "patch1.zip" in target_patches or "patch3.zip" in target_patches
         if build_all:
-            print("\n[*] 2/6: Patching config_pay_zhifu.unity3d (Table_MonthCard 2026 fix)...")
+            print("\n[*] 2/7: Patching config_pay_zhifu.unity3d (Table_MonthCard 2026 fix)...")
             z10 = zipfile.ZipFile(io.BytesIO(apk_z.read("assets/assets10.zip")))
             pay_bytes = patch_bundle(z10.read("Android/resources/script2/config_pay_zhifu.unity3d"), ["Table_MonthCard"], lua_dir)
 
-            print("\n[*] 3/6: Patching functionsystem.unity3d (FunctionMonster)...")
+            print("\n[*] 3/7: Patching functionsystem.unity3d (FunctionMonster)...")
             z9 = zipfile.ZipFile(io.BytesIO(apk_z.read("assets/assets9.zip")))
             func_bytes = patch_bundle(z9.read("Android/resources/script2/functionsystem.unity3d"), ["FunctionMonster"], lua_dir)
 
-            print("\n[*] 4/6: Patching config_pet_suicong.unity3d (Table_Pet, Table_Pet_FriendLevel)...")
+            print("\n[*] 4/7: Patching config_pet_suicong.unity3d (Table_Pet, Table_Pet_FriendLevel)...")
             z6 = zipfile.ZipFile(io.BytesIO(apk_z.read("assets/assets6.zip")))
             pet_cfg_bytes = patch_bundle(z6.read("Android/resources/script2/config_pet_suicong.unity3d"), ["Table_Pet", "Table_Pet_FriendLevel"], lua_dir)
 
-            print("\n[*] 5/6: Patching com.unity3d (PetInfoData nil guard)...")
+            print("\n[*] 5/7: Patching com.unity3d (PetInfoData nil guard)...")
             z14 = zipfile.ZipFile(io.BytesIO(apk_z.read("assets/assets14.zip")))
             com_bytes = patch_bundle(z14.read("Android/resources/script2/com.unity3d"), ["PetInfoData"], lua_dir)
 
-            print("\n[*] 6/6: Patching refactory.unity3d (PetData, NPet, Game_Interface_ForCSharp)...")
+            print("\n[*] 6/7: Patching refactory.unity3d (PetData, NPet, Game_Interface_ForCSharp)...")
             z11 = zipfile.ZipFile(io.BytesIO(apk_z.read("assets/assets11.zip")))
             refactory_bytes = patch_bundle(z11.read("Android/resources/script2/refactory.unity3d"), ["PetData", "NPet", "Game_Interface_ForCSharp"], lua_dir)
+
+            print("\n[*] 7/7: Patching config_skill_jineng.unity3d (Table_Skill fixes)...")
+            z27 = zipfile.ZipFile(io.BytesIO(apk_z.read("assets/assets27.zip")))
+            skill_cfg_bytes = patch_bundle(z27.read("Android/resources/script2/config_skill_jineng.unity3d"), ["Table_Skill"], lua_dir)
 
     # 7. Construct hotpatch zip archives
     print(f"\n[*] Building in-memory {', '.join(target_patches)} archive...")
@@ -211,6 +216,8 @@ def main():
             out_z.writestr("Android/resources/script2/com.unity3d", com_bytes)
         if refactory_bytes:
             out_z.writestr("Android/resources/script2/refactory.unity3d", refactory_bytes)
+        if skill_cfg_bytes:
+            out_z.writestr("Android/resources/script2/config_skill_jineng.unity3d", skill_cfg_bytes)
     final_zip_bytes = zip_buf.getvalue()
 
     os.makedirs(res_dir, exist_ok=True)
