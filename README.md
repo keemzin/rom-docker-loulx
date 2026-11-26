@@ -203,10 +203,24 @@ powershell -ExecutionPolicy Bypass -File scripts\setup_loopback.ps1
 For troubleshooting and advanced options, see [LOOPBACK_ADAPTER_GUIDE.md](docs/LOOPBACK_ADAPTER_GUIDE.md).
 
 ### Step 5: Start the Server Stack
+> [!NOTE]
+> **Pre-Built Docker Images**: Base images (`johnsdoes/rom-game:base` and `johnsdoes/rom-web:base`) are pre-built and hosted on Docker Hub. You do **not** need to build images manually. Running `docker compose up -d` will automatically pull them in seconds!
+
 Launch the container cluster using standard Docker Compose:
 ```bash
 docker compose up -d
 ```
+
+*(Optional) **Rebuilding Images Locally**: If you want to customize the Docker environment and manually rebuild images locally instead of pulling from Docker Hub:
+```powershell
+# Rebuild game container locally:
+docker compose build game
+
+# Full clean rebuild from scratch (no cache):
+docker compose build --no-cache game
+```
+> [!TIP]
+> `game/Dockerfile` is pre-configured to fetch from official CentOS 7 and EPEL vault archives with aggressive timeouts and disabled `fastestmirror`. Clean builds take ~10–12 minutes.*
 
 Check game cluster readiness:
 ```bash
