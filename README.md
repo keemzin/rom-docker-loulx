@@ -259,6 +259,56 @@ This updates `patch.zip` / `patch1.zip` in `web/wwwroot/127.0.0.1/res/` and bump
 
 ---
 
+## 💾 Database Backup & Restore Guide
+
+All player accounts, characters, inventories, pet eggs, and quest data are stored inside the persistent Docker volume `mysql_data_lolx`.
+
+### 1. Creating a Full Backup
+To create a complete `.sql` dump of all databases (`ro_global` and `ro_xd_r2`) into the `BACKUP/` folder:
+
+* **Windows PowerShell**:
+  ```powershell
+  mkdir -Force BACKUP
+  docker exec rom-mysql-lolx mysqldump -uroot -p123456 --all-databases --routines --triggers --single-transaction > BACKUP\rom_mysql_backup.sql
+  ```
+
+* **Windows Command Prompt (CMD)**:
+  ```cmd
+  if not exist BACKUP mkdir BACKUP
+  docker exec rom-mysql-lolx mysqldump -uroot -p123456 --all-databases --routines --triggers --single-transaction > BACKUP\rom_mysql_backup.sql
+  ```
+
+* **Linux / macOS / Bash**:
+  ```bash
+  mkdir -p BACKUP
+  docker exec rom-mysql-lolx mysqldump -uroot -p123456 --all-databases --routines --triggers --single-transaction > BACKUP/rom_mysql_backup.sql
+  ```
+
+---
+
+### 2. Restoring from a Backup
+To restore a previously saved `.sql` dump back into MySQL:
+
+* **Windows PowerShell**:
+  ```powershell
+  Get-Content BACKUP\rom_mysql_backup.sql | docker exec -i rom-mysql-lolx mysql -uroot -p123456
+  ```
+
+* **Windows Command Prompt (CMD)**:
+  ```cmd
+  docker exec -i rom-mysql-lolx mysql -uroot -p123456 < BACKUP\rom_mysql_backup.sql
+  ```
+
+* **Linux / macOS / Bash**:
+  ```bash
+  docker exec -i rom-mysql-lolx mysql -uroot -p123456 < BACKUP/rom_mysql_backup.sql
+  ```
+
+> [!IMPORTANT]
+> **Docker Volume Persistence**: Running standard `docker compose down` will **never** delete your database data. Your characters remain permanently stored in the `mysql_data_lolx` volume. Do **not** pass the `-v` flag (`docker compose down -v`) unless you deliberately want to wipe all character progress and reset the server to fresh defaults.
+
+---
+
 ## 🛡️ Port Forwarding Reference
 
 | Port | Protocol | Service | Notes |
