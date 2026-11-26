@@ -1,0 +1,50 @@
+# 📦 Ragnarok M (LouLx EP5) - Over-The-Air (OTA) Patches
+
+This directory contains the latest pre-built client OTA patches and metadata manifest. When the game client launches, it queries `version.php` / `patch.meta.json` and automatically downloads and unpacks any newer patches over-the-air.
+
+---
+
+## 🚀 Quick Setup (How to Install)
+
+After extracting `wwwroot.zip` from Hugging Face into `./web/wwwroot/`:
+
+1. **Copy all files from this `patches/` directory:**
+   * `patch.meta.json`
+   * `patch.zip`
+   * `patch1.zip`
+   * `patch2.zip`
+   * `patch3.zip`
+2. **Paste them into:**
+   ```
+   ./web/wwwroot/127.0.0.1/res/
+   ```
+   *(Select **Replace the files in the destination** when prompted).*
+
+This ensures your local Nginx server immediately serves the latest version **400097** hotpatches with all custom pet skills and bug fixes to connecting game clients.
+
+---
+
+## 📋 Patch Catalog & Changelog
+
+| Archive | Version | Size | Description & Contents |
+| :--- | :---: | :---: | :--- |
+| **`patch.zip` / `patch1.zip`** | `400089` | ~16.5 MB | **Core Quality-of-Life & Bug Fixes**: <br>• **0-Load Quest Teleporting**: Instantly teleports directly to quest targets without loading screens (`MainViewTaskQuestPage.lua`, `QuestTraceCell.lua`).<br>• **2026 Monthly VIP Card Fix**: Fixes client crash on the month card tab (`Table_MonthCard.lua`).<br>• **Big Cat Store Mock Payments**: Free Big Cat Coins and mock recharge system (`UIViewControllerZenyShop.lua`).<br>• **VIP Mini-Map Radar**: Auto-detects Mini & MVP bosses on the mini-map (`FunctionMonster.lua`). |
+| **`patch2.zip`** | Legacy | ~10.4 MB | **Incremental Base Resources**: Fallback asset bundle updates for base game mechanics. |
+| **`patch3.zip`** | **`400097`** | **~25.0 MB** | **Custom Pet & Combat Skill Overhaul**: <br>• **Complete 28 MVP/Mini-Boss Pets**: Unique egg hatching, 3D monster models, interactive touch events, and avatar option menus (`Table_Pet.lua`, `Table_Pet_FriendLevel.lua`, `SceneProxy.lua`).<br>• **Verified Combat Skills**: Fixed missing visual effects and animations (`Table_Skill.lua` inside `config_skill_jineng.unity3d`):<br>&nbsp;&nbsp;- **Eddga**: Blazing Flame (`MagnumBreak_attack` + `FireAttributeHit` impact with `use_skill` roar).<br>&nbsp;&nbsp;- **Bloody Knight & Thanatos**: Dark Blow (`darkhole_attack` + `drakattributehit` shadow strike).<br>&nbsp;&nbsp;- **Wolf Grandma**: Frenzied Scratch (`SonicBlow` + `ragingpalmstrike_hit` claw impact).<br>&nbsp;&nbsp;- **Spashire & Stormy Knight**: Cold Bolt (removed freezing `reading` cast pose).<br>• **Normalized Attack Speed**: Balanced pet attack intervals to `AtkSpd = 1.2` (~0.8s cooldown). |
+| **`patch.meta.json`** | Latest | ~500 B | **Version Manifest**: Read by the mobile client on launch to compare current local patch versions against server versions and trigger automatic downloads. |
+
+---
+
+## 🛠️ Rebuilding Patches From Lua Source
+
+All unencrypted, human-readable Lua source files are tracked in `client/patch_lua/`.
+
+To compile, encrypt, and generate a new hotpatch archive:
+```powershell
+python scripts/build_hotpatch.py patch3.zip --all
+```
+This will:
+1. Extract the base Unity asset bundles from `client/loulx-rom.apk`.
+2. Encrypt the modified Lua scripts using the LouLx AES-256-CBC cipher.
+3. Repack them into `patch3.zip`, bump the version in `patch.meta.json`, and output the files to `./web/wwwroot/127.0.0.1/res/`.
+4. Copy the newly generated `patch3.zip` and `patch.meta.json` into this `patches/` folder to commit and share on GitHub!

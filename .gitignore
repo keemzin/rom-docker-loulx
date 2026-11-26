@@ -16,6 +16,9 @@ extracted_pets/
 *.tar.gz
 !game/libs/usr_local_lib.tar.gz
 *.zip
+!patches/*.zip
+!patches/
+!patches/**
 *.tar
 *.7z
 *.rar
