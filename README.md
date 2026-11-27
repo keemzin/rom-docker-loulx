@@ -189,6 +189,11 @@ This project unites two major community milestones from RaGEZONE:
   - **Visual Effects & Skill Animations**: All 28 custom pet active skills are verified and cross-checked against native EP5 APK effect assets. Broken/missing effect prefabs (such as missing `HotFlame_Atk`, `DarkAtk_Atk`, `CrazyClaw_hit`) and invalid humanoid cast poses (`reading`) have been replaced with native working effects (`MagnumBreak_attack`, `FireAttributeHit`, `darkhole_attack`, `drakattributehit`, `ragingpalmstrike_hit`) and injected into `config_skill_jineng.unity3d` via OTA `patch2.zip`.
   - **Normalized Attack Speed**: Pet attack speeds have been balanced and normalized across all custom pets (`AtkSpd = 1.2`, ~0.8s cooldown) for smooth, natural combat pacing.
 
+
+
+https://github.com/user-attachments/assets/44923ac2-648b-4597-a8df-f26b8793bb97
+
+
 ---
 
 ## 🐾 Custom MVP & Mini-Boss Pet Egg Catalog
