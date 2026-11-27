@@ -21,7 +21,24 @@ cd rom-docker-loulx
 ```
 
 ### Step 2: Download Server & Client Assets
-Download the pre-configured archives from Hugging Face:  
+
+#### Method A: Automated 1-Click Setup (Recommended)
+Run from the repository root:
+```powershell
+python scripts/download_assets.py
+```
+*(Alternatively, double-click `scripts\download_assets.bat` or run `powershell -File scripts\download_assets.ps1`)*
+
+This script automatically:
+1. Downloads `server.zip`, `wwwroot.zip`, `init.zip`, and `ROM.apk` directly from Hugging Face with real-time progress bars.
+2. Extracts them cleanly into `./server/`, `./web/wwwroot/`, and `./db/init/` without nested directory mistakes.
+3. Cleans up temporary `.zip` files to save disk space.
+4. Automatically runs `scripts/install_patches.py` to ensure the latest OTA hotpatches and server tables are in place!
+
+*(Optional flags: `--no-apk` to skip the 2GB client download if you already have it).*
+
+#### Method B: Manual Download & Extract
+Download the pre-configured archives manually from Hugging Face:  
 👉 [**huggingface.co/datasets/johnsdoes/docker-rom/tree/main/loulx**](https://huggingface.co/datasets/johnsdoes/docker-rom/tree/main/loulx)
 
 Extract each file into the repository root:
@@ -33,7 +50,7 @@ Extract each file into the repository root:
    ```powershell
    python scripts/install_patches.py
    ```
-   *This automatically installs the latest client OTA hotpatches (`patch2.zip`) into `res/` and synchronizes the server tables with balanced pet attack speeds and verified combat skills.*
+   *This installs the latest client OTA hotpatches (`patch2.zip`) into `res/` and synchronizes the server tables with balanced pet attack speeds and verified combat skills.*
 
 ### Step 3: Configure Environment
 Copy `.env.example` to `.env`:
