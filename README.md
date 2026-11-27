@@ -105,7 +105,6 @@ docker logs -f rom-game-lolx
 > [SceneServer2],Server is Ready
 > The server started successfully and client can logins.
 > ```
-> *(Or check SuperServer state: `docker exec rom-game-lolx tail -n 20 /RoServercode/bin/Release/log/xd/r2_s1/SuperServer.log` until you see `[初始化完成],state: 3`).*
 
 ### Step 6: Connect & Play
 * Launch **ROM.apk** on your device or emulator.
