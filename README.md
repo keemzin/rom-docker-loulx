@@ -90,9 +90,22 @@ docker compose build --no-cache game
 
 Check game cluster readiness:
 ```bash
-docker exec rom-game-lolx tail -n 20 /RoServercode/bin/Release/log/xd/r2_s1/SuperServer.log
+docker logs -f rom-game-lolx
 ```
-*(When you see `[初始化完成],state: 3`, all 21 servers are online and ready for logins!)*
+
+> [!IMPORTANT]
+> **Wait for the Boot Sequence (~2 to 2.5 Minutes)**  
+> When the containers first launch, 21 C++ server binaries, the PHP Swoole Trade engine, and map instances (`SceneServer1` & `SceneServer2`) take approximately **2 to 2.5 minutes** to load all game tables, monster spawns, and map navigation meshes into memory.
+>
+> **Do not rush to login immediately**, otherwise the game will show "Server Maintenance" or "Cannot connect to server".
+>
+> Wait until you see these final lines in the logs:
+> ```text
+> [SceneServer1],Server is Ready
+> [SceneServer2],Server is Ready
+> The server started successfully and client can logins.
+> ```
+> *(Or check SuperServer state: `docker exec rom-game-lolx tail -n 20 /RoServercode/bin/Release/log/xd/r2_s1/SuperServer.log` until you see `[初始化完成],state: 3`).*
 
 ### Step 6: Connect & Play
 * Launch **ROM.apk** on your device or emulator.
