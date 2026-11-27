@@ -89,6 +89,16 @@ For troubleshooting and advanced options, see [LOOPBACK_ADAPTER_GUIDE.md](docs/L
 > [!NOTE]
 > **Pre-Built Docker Images**: Base images (`johnsdoes/rom-game:base` and `johnsdoes/rom-web:base`) are pre-built and hosted on Docker Hub. You do **not** need to build images manually. Running `docker compose up -d` will automatically pull them in seconds!
 
+> [!TIP]
+> **Running on a 16 GB RAM PC?**  
+> The server loads ~28 GB of map assets into memory. To run smoothly on a 16 GB machine without OOM crashes, create `C:\Users\<YourUser>\.wslconfig`:
+> ```ini
+> [wsl2]
+> memory=12GB
+> swap=20GB
+> ```
+> Run `wsl --shutdown` once to apply (or simply restart your PC). Windows will automatically page inactive maps to SSD swap!
+
 Launch the container cluster using standard Docker Compose:
 ```bash
 docker compose up -d
